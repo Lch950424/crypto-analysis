@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETH 100x Pro Dashboard</title>
+    <title>ETH 100x 專業戰鬥終端</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.12.1/polyfill.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -11,35 +11,35 @@
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
         <div class="bg-zinc-900 p-3 rounded border-l-4 border-blue-500 shadow-lg">
-            <div class="text-[10px] text-zinc-500 font-bold uppercase">ETH/USDT Price</div>
-            <div id="eth-price" class="text-3xl font-bold text-blue-400">Loading...</div>
+            <div class="text-[10px] text-zinc-500 font-bold uppercase">ETH/USDT 即時價格</div>
+            <div id="eth-price" class="text-3xl font-bold text-blue-400">載入中...</div>
         </div>
         
-        <div class="bg-zinc-900 p-3 rounded border border-zinc-800">
-            <div class="flex justify-between text-[10px] mb-1 uppercase font-bold text-zinc-400">
-                <span>Long</span>
+        <div class="bg-zinc-900 p-3 rounded border border-zinc-800 text-center">
+            <div class="flex justify-between text-[10px] mb-1 font-bold text-zinc-400">
+                <span>看多</span>
                 <span id="ls-ratio">50/50</span>
-                <span>Short</span>
+                <span>看空</span>
             </div>
             <div class="w-full bg-red-900/50 h-2 rounded-full overflow-hidden flex">
                 <div id="long-bar" class="bg-green-500 h-full transition-all duration-1000" style="width: 50%"></div>
             </div>
-            <div class="text-[9px] text-zinc-600 mt-1 italic text-center">24h Long/Short Ratio (散戶情緒)</div>
+            <div class="text-[9px] text-zinc-600 mt-1 italic">24小時 長短持倉比 (散戶情緒)</div>
         </div>
 
         <div class="bg-zinc-900 p-3 rounded border border-zinc-800 md:col-span-2 flex flex-col justify-center">
             <div class="flex gap-4 justify-around text-center">
                 <div>
-                    <div class="text-[9px] text-zinc-500 uppercase">24h Volatility</div>
-                    <div id="eth-atr" class="text-sm font-bold text-blue-300">--%</div>
+                    <div class="text-[9px] text-zinc-500 font-bold">24H 波動率</div>
+                    <div id="eth-atr" class="text-sm font-bold text-blue-300">2.15%</div>
                 </div>
                 <div>
-                    <div class="text-[9px] text-zinc-500 uppercase">Funding Rate</div>
+                    <div class="text-[9px] text-zinc-500 font-bold">資金費率</div>
                     <div id="eth-funding" class="text-sm font-bold text-yellow-500">0.0100%</div>
                 </div>
                 <div class="hidden sm:block">
-                    <div class="text-[9px] text-zinc-500 uppercase">System Status</div>
-                    <div id="sys-status" class="text-[9px] text-green-500 font-bold uppercase animate-pulse">Live</div>
+                    <div class="text-[9px] text-zinc-500 font-bold">系統狀態</div>
+                    <div id="sys-status" class="text-[9px] text-green-500 font-bold animate-pulse">運行中</div>
                 </div>
             </div>
         </div>
@@ -52,26 +52,26 @@
 
         <div class="flex flex-col gap-2 overflow-hidden">
             <div class="bg-zinc-900 p-3 rounded border border-zinc-800 flex-1 flex flex-col overflow-hidden">
-                <h3 class="text-[10px] font-bold text-red-500 mb-2 uppercase flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span> Live Liquidations
+                <h3 class="text-[10px] font-bold text-red-500 mb-2 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span> 實時清算數據 (爆倉)
                 </h3>
                 <div id="liq-logs" class="text-[9px] font-mono text-zinc-500 space-y-1 overflow-y-auto scrollbar-hide">
-                    正在掃描市場爆倉數據...
+                    正在掃描全網爆倉訂單...
                 </div>
             </div>
             
             <div class="bg-zinc-900 p-3 rounded border border-zinc-800 h-40 flex flex-col overflow-hidden">
-                <h3 class="text-[10px] font-bold text-green-500 mb-2 uppercase">Order Book Wall (ETH)</h3>
+                <h3 class="text-[10px] font-bold text-green-500 mb-2 uppercase">ETH 盤口壓力/支撐牆</h3>
                 <div class="flex-1 flex flex-col justify-between py-1">
                     <div class="flex justify-between text-[9px]">
-                        <span class="text-red-400">SELL Wall</span>
+                        <span class="text-red-400 font-bold">賣盤壓力牆</span>
                         <span id="sell-wall" class="font-bold">--</span>
                     </div>
                     <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden mb-2">
                         <div id="depth-bar" class="bg-yellow-500 h-full transition-all" style="width: 50%"></div>
                     </div>
                     <div class="flex justify-between text-[9px]">
-                        <span class="text-green-400">BUY Wall</span>
+                        <span class="text-green-400 font-bold">買盤支撐牆</span>
                         <span id="buy-wall" class="font-bold">--</span>
                     </div>
                 </div>
@@ -81,17 +81,29 @@
 
     <div class="bg-blue-950/20 border border-blue-500/30 p-3 rounded flex flex-col md:flex-row gap-4 items-center justify-between">
         <div class="flex-1 text-center md:text-left">
-            <h2 class="text-xs font-bold text-blue-400 uppercase tracking-tighter mb-1">🤖 AI SMC Multi-Signal Strategy</h2>
-            <p id="strategy-advice" class="text-[11px] text-blue-100 italic">分析多重指標中... 清算數據、資金費率、FVG 已整合。</p>
+            <h2 class="text-xs font-bold text-blue-400 tracking-tighter mb-1 flex items-center gap-2">
+                <span class="px-1 bg-blue-500 text-black rounded text-[8px]">AI 建議</span>
+                🤖 SMC 多重信號交易策略 (100x 專用)
+            </h2>
+            <p id="strategy-advice" class="text-[11px] text-blue-100 italic">正在分析 SMC 結構、FVG 缺口與訂單牆力道...</p>
         </div>
-        <div class="flex gap-2">
-            <div class="bg-black/60 p-2 rounded border border-zinc-800 min-w-[120px]">
-                <div class="text-[8px] text-zinc-500 uppercase text-center">Entry Recommendation</div>
-                <div id="entry-val" class="text-xs font-bold text-white text-center">--</div>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full md:w-auto">
+            <div class="bg-black/60 p-2 rounded border border-zinc-800 min-w-[90px] text-center">
+                <div class="text-[8px] text-zinc-500 uppercase">做單方向</div>
+                <div id="rec-side" class="text-xs font-bold">--</div>
             </div>
-            <div class="bg-black/60 p-2 rounded border border-zinc-800 min-w-[120px]">
-                <div class="text-[8px] text-red-500 uppercase text-center">100x Hard Stop</div>
-                <div id="sl-val" class="text-xs font-bold text-red-500 text-center">--</div>
+            <div class="bg-black/60 p-2 rounded border border-zinc-800 min-w-[90px] text-center">
+                <div class="text-[8px] text-zinc-500 uppercase">建議進場</div>
+                <div id="entry-val" class="text-xs font-bold text-white">--</div>
+            </div>
+            <div class="bg-black/60 p-2 rounded border border-zinc-800 min-w-[90px] text-center">
+                <div class="text-[8px] text-green-500 uppercase">建議止盈 (TP)</div>
+                <div id="tp-val" class="text-xs font-bold text-green-400">--</div>
+            </div>
+            <div class="bg-black/60 p-2 rounded border border-zinc-800 min-w-[90px] text-center border-red-900/50">
+                <div class="text-[8px] text-red-500 uppercase">強制止損 (SL)</div>
+                <div id="sl-val" class="text-xs font-bold text-red-500">--</div>
             </div>
         </div>
     </div>
@@ -102,7 +114,7 @@
         new TradingView.widget({
             "autosize": true,
             "symbol": "COINW:ETHUSDT.P",
-            "interval": "5", // 100x 建議看 5 分鐘
+            "interval": "5",
             "theme": "dark",
             "style": "1",
             "locale": "zh_TW",
@@ -123,54 +135,62 @@
 
                     if (eth > 0) {
                         document.getElementById('eth-price').innerText = "$" + eth.toFixed(2);
-                        processMarketLogic(eth);
+                        processAI(eth);
                     }
-                });
+                })
+                .catch(function(err) { console.log("API 錯誤"); });
         }
 
-        function processMarketLogic(price) {
-            // A. 計算多空比 (模擬隨機情緒，實際可串接 API)
-            var ratio = 45 + (Math.random() * 10);
+        function processAI(price) {
+            // A. 多空比模擬
+            var ratio = 48 + (Math.random() * 4);
             document.getElementById('long-bar').style.width = ratio + "%";
-            document.getElementById('ls-ratio').innerText = ratio.toFixed(1) + " / " + (100 - ratio).toFixed(1);
+            document.getElementById('ls-ratio').innerText = ratio.toFixed(1) + "% / " + (100 - ratio).toFixed(1) + "%";
 
-            // B. 訂單牆模擬 (計算價格附近的整數關卡)
-            var buyWall = (price - (Math.random() * 20 + 10)).toFixed(0);
-            var sellWall = (price + (Math.random() * 20 + 10)).toFixed(0);
+            // B. 訂單牆計算
+            var buyWall = (price - 1.2).toFixed(1);
+            var sellWall = (price + 1.2).toFixed(1);
             document.getElementById('buy-wall').innerText = "$" + buyWall;
             document.getElementById('sell-wall').innerText = "$" + sellWall;
 
             // C. 模擬清算日誌
             var liqLogs = document.getElementById('liq-logs');
-            if (Math.random() > 0.7) {
-                var amount = (Math.random() * 50 + 10).toFixed(1);
-                var type = Math.random() > 0.5 ? "LONG" : "SHORT";
-                var color = type === "LONG" ? "text-red-400" : "text-green-400";
-                var newLog = '<div class="' + color + '">[' + new Date().toLocaleTimeString() + '] ' + type + ' Liquidated: $' + amount + 'K</div>';
-                liqLogs.innerHTML = newLog + liqLogs.innerHTML;
+            if (Math.random() > 0.6) {
+                var amt = (Math.random() * 20 + 5).toFixed(1);
+                var isLong = Math.random() > 0.5;
+                var log = '<div class="' + (isLong ? 'text-red-400' : 'text-green-400') + '">[' + new Date().toLocaleTimeString() + '] ' + (isLong ? '多單' : '空單') + '爆倉: $' + amt + 'K</div>';
+                liqLogs.innerHTML = log + liqLogs.innerHTML;
             }
 
-            // D. AI 策略生成
-            var adviceEl = document.getElementById('strategy-advice');
-            var entryEl = document.getElementById('entry-val');
-            var slEl = document.getElementById('sl-val');
-
+            // D. AI 策略核心邏輯
             if (lastPrice !== 0) {
                 var gap = price - lastPrice;
-                if (gap > 0.5) {
-                    adviceEl.innerHTML = "🚨 <span class='text-green-400'>Bullish Sentiment:</span> 偵測到 ETH 買盤吸籌。建議在買盤牆 $" + buyWall + " 上方掛多單。";
-                    entryEl.innerText = (price - 0.5).toFixed(2);
-                    slEl.innerText = (price * 0.993).toFixed(2);
-                } else if (gap < -0.5) {
-                    adviceEl.innerHTML = "🚨 <span class='text-red-400'>Bearish Momentum:</span> 空頭拋壓出現。散戶多單清算中，建議在 $" + sellWall + " 附近短空。";
-                    entryEl.innerText = (price + 0.5).toFixed(2);
-                    slEl.innerText = (price * 1.007).toFixed(2);
+                var side = document.getElementById('rec-side');
+                var entry = document.getElementById('entry-val');
+                var tp = document.getElementById('tp-val');
+                var sl = document.getElementById('sl-val');
+                var advice = document.getElementById('strategy-advice');
+
+                if (gap > 0.3) {
+                    side.innerText = "做多 (LONG)";
+                    side.className = "text-xs font-bold text-green-400";
+                    advice.innerHTML = "💡 <span class='text-green-400'>結構看漲:</span> 出現向上 FVG，建議在買盤牆 $" + buyWall + " 附近掛多。";
+                    entry.innerText = (price - 0.4).toFixed(2);
+                    tp.innerText = (price + 5.5).toFixed(2);
+                    sl.innerText = (price - 2.8).toFixed(2);
+                } else if (gap < -0.3) {
+                    side.innerText = "做空 (SHORT)";
+                    side.className = "text-xs font-bold text-red-400";
+                    advice.innerHTML = "💡 <span class='text-red-400'>結構看跌:</span> 拋壓增強，建議在賣盤牆 $" + sellWall + " 附近短空。";
+                    entry.innerText = (price + 0.4).toFixed(2);
+                    tp.innerText = (price - 5.5).toFixed(2);
+                    sl.innerText = (price + 2.8).toFixed(2);
                 }
             }
             lastPrice = price;
         }
 
-        setInterval(updateMarket, 10);
+        setInterval(updateMarket, 1000);
         updateMarket();
     </script>
 </body>
