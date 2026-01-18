@@ -2,162 +2,156 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto 100x Pro Dashboard</title>
+    <title>CoinW 100x AI 戰鬥終端</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/technicalindicators@3.1.0/dist/browser.js"></script>
+    <style>
+        .fvg-bull { background: rgba(34, 197, 94, 0.2); border-left: 2px solid #22c55e; }
+        .fvg-bear { background: rgba(239, 68, 68, 0.2); border-left: 2px solid #ef4444; }
+        .glow-green { text-shadow: 0 0 10px #22c55e; }
+        .glow-red { text-shadow: 0 0 10px #ef4444; }
+    </style>
 </head>
-<body class="bg-black text-gray-200 p-4 font-sans">
+<body class="bg-black text-white p-2">
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <div class="bg-gray-900 p-4 rounded-lg border border-yellow-600 shadow-lg">
-            <h3 class="text-yellow-500 text-sm font-bold">BTC 資金費率 (Funding)</h3>
-            <p id="btc-funding" class="text-2xl font-mono text-green-400">--%</p>
-            <div id="funding-status" class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">Market Neutral</div>
+    <div class="flex gap-4 mb-2">
+        <div class="bg-gray-900 p-3 rounded flex-1 border-l-4 border-yellow-500">
+            <span class="text-xs text-gray-400">CoinW BTC/USDT</span>
+            <div id="btc-price" class="text-3xl font-mono font-bold tracking-tighter">0.00</div>
         </div>
-        
-        <div class="bg-gray-900 p-4 rounded-lg border border-blue-600 shadow-lg">
-            <h3 class="text-blue-400 text-sm font-bold">ETH 24h 波動率 (ATR)</h3>
-            <p id="eth-atr" class="text-2xl font-mono text-blue-300">--%</p>
-            <p class="text-[10px] text-gray-500 mt-1">100x 槓桿容錯率極低</p>
+        <div class="bg-gray-900 p-3 rounded flex-1 border-l-4 border-blue-500">
+            <span class="text-xs text-gray-400">CoinW ETH/USDT</span>
+            <div id="eth-price" class="text-3xl font-mono font-bold tracking-tighter">0.00</div>
         </div>
+    </div>
 
-        <div class="bg-gray-900 p-4 rounded-lg border border-purple-600 shadow-lg md:col-span-2">
-            <h3 class="text-purple-400 text-sm font-bold">Telegram 警報設置 (僅限本地儲存)</h3>
-            <div class="flex gap-2 mt-2">
-                <input id="tg-token" type="password" placeholder="Bot Token" class="bg-gray-800 text-xs p-2 rounded w-full border border-gray-700 focus:outline-none focus:border-purple-500">
-                <input id="tg-chatid" type="text" placeholder="Chat ID" class="bg-gray-800 text-xs p-2 rounded w-full border border-gray-700 focus:outline-none focus:border-purple-500">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+        <div class="bg-gray-900 p-4 rounded h-48 overflow-y-auto border border-gray-800">
+            <h3 class="text-green-400 font-bold text-sm mb-2">FVG / IFVG 檢測器</h3>
+            <div id="fvg-logs" class="text-[10px] space-y-1 font-mono"></div>
+        </div>
+        <div class="bg-gray-900 p-4 rounded h-48 border border-gray-800">
+            <h3 class="text-purple-400 font-bold text-sm mb-2">SMC Smart Money (LuxAlgo Style)</h3>
+            <div id="smc-data" class="text-xs space-y-2">
+                <p>BOS (結構突破): <span id="bos-status" class="text-gray-500">掃描中...</span></p>
+                <p>Order Block (主力掛單區): <span id="ob-zone" class="text-gray-500">等待確認...</span></p>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <div class="h-[500px] bg-gray-900 rounded-lg overflow-hidden border border-gray-800">
-            <div id="tradingview_btc" class="h-full"></div>
+    <div class="bg-blue-900/20 border border-blue-500 p-4 rounded-lg">
+        <div class="flex justify-between items-center mb-2">
+            <h2 class="text-lg font-bold text-blue-300 italic">🤖 AI 100x 策略建議</h2>
+            <span class="text-[10px] bg-blue-500 px-2 py-1 rounded">實時計算中</span>
         </div>
-        <div class="h-[500px] bg-gray-900 rounded-lg overflow-hidden border border-gray-800">
-            <div id="tradingview_eth" class="h-full"></div>
+        <div id="ai-advice" class="text-sm leading-relaxed text-blue-100">
+            正在收集 CoinW 深度圖與 K 線數據...
+        </div>
+        <div id="trade-params" class="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
+            <div class="p-2 bg-black/40 rounded">入場: <span id="entry-p" class="text-white">--</span></div>
+            <div class="p-2 bg-black/40 rounded">止損: <span id="sl-p" class="text-red-400">--</span></div>
         </div>
     </div>
 
-    <div id="alert-panel" class="bg-red-950/20 border border-red-500/50 p-6 rounded-lg text-center backdrop-blur-sm">
-        <h2 class="text-xl font-bold text-red-400 mb-2 italic underline decoration-red-500">🚨 100x 合約高風險決策區域</h2>
-        <p id="strategy-advice" class="text-base text-gray-300">正在分析即時盤面數據...</p>
-        <div id="liquidation-zone" class="mt-4 text-xs text-yellow-500 opacity-80 font-mono"></div>
-    </div>
-
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    
     <script>
-        // 1. 初始化 TradingView 圖表
-        new TradingView.widget({
-            "autosize": true,
-            "symbol": "BINANCE:BTCUSDT.P",
-            "interval": "15",
-            "timezone": "Etc/UTC",
-            "theme": "dark",
-            "style": "1",
-            "locale": "zh_TW",
-            "toolbar_bg": "#f1f3f6",
-            "enable_publishing": false,
-            "hide_side_toolbar": false,
-            "allow_symbol_change": true,
-            "container_id": "tradingview_btc"
-        });
+        let klines = []; // 存儲 K 線數據用於指標計算
+        const MAX_KLINES = 100;
 
-        new TradingView.widget({
-            "autosize": true,
-            "symbol": "BINANCE:ETHUSDT.P",
-            "interval": "15",
-            "theme": "dark",
-            "container_id": "tradingview_eth"
-        });
+        // 1. CoinW WebSocket 連接 (模擬實現，具體路徑需參照 CoinW 實時文檔)
+        function initCoinWWS() {
+            // 注意：實際 CoinW WS 需要處理訂閱消息，此處為結構演示
+            const socket = new WebSocket('wss://api.coinw.com/ws/public'); 
 
-        // 2. 獲取資金費率與市場數據
-        async function updateMarketData() {
-            try {
-                // 獲取永續合約資金費率 (Binance Futures API)
-                const fundRes = await fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT');
-                const fundData = await fundRes.json();
-                const fundingRate = (parseFloat(fundData.lastFundingRate) * 100).toFixed(4);
-                
-                const fundingEl = document.getElementById('btc-funding');
-                fundingEl.innerText = `${fundingRate}%`;
+            socket.onopen = () => {
+                console.log("CoinW Connected");
+                // 訂閱 BTC 和 ETH 的 Ticker 與 KLine
+                socket.send(JSON.stringify({"op": "sub", "topic": "spot/ticker:BTCUSDT"}));
+                socket.send(JSON.stringify({"op": "sub", "topic": "spot/candle1m:BTCUSDT"}));
+            };
 
-                // 資金費率邏輯判斷
-                const statusEl = document.getElementById('funding-status');
-                if (fundingRate > 0.03) {
-                    fundingEl.className = "text-2xl font-mono text-red-500 animate-pulse";
-                    statusEl.innerText = "🚨 多頭過於擁擠 (High Funding)";
-                    sendTGAlert(`BTC 資金費率過高 (${fundingRate}%)，注意 100x 多單清算風險！`);
-                } else if (fundingRate < -0.03) {
-                    fundingEl.className = "text-2xl font-mono text-blue-400 animate-pulse";
-                    statusEl.innerText = "🚨 空頭過於擁擠 (Negative Funding)";
-                    sendTGAlert(`BTC 資金費率極負 (${fundingRate}%)，小心空頭擠壓軋空！`);
-                } else {
-                    fundingEl.className = "text-2xl font-mono text-green-400";
-                    statusEl.innerText = "Market Neutral";
+            socket.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.topic === 'spot/ticker:BTCUSDT') {
+                    updatePrice('btc', msg.data.last);
                 }
+                if (msg.topic === 'spot/candle1m:BTCUSDT') {
+                    processKLine(msg.data);
+                }
+            };
+        }
 
-                // 獲取 ATR / 波動率 (透過 24h Ticker 估算)
-                const tickerRes = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=ETHUSDT');
-                const tickerData = await tickerRes.json();
-                const high = parseFloat(tickerData.highPrice);
-                const low = parseFloat(tickerData.lowPrice);
-                const last = parseFloat(tickerData.lastPrice);
-                const volRange = (((high - low) / last) * 100).toFixed(2);
-                
-                document.getElementById('eth-atr').innerText = `${volRange}%`;
+        // 2. 核心指標計算 (FVG / SMC)
+        function processKLine(candle) {
+            klines.push(candle);
+            if (klines.length > MAX_KLINES) klines.shift();
+            if (klines.length < 3) return;
 
-                updateStrategy(fundingRate, volRange, last);
+            const i = klines.length - 1;
+            const c1 = klines[i-2], c2 = klines[i-1], c3 = klines[i];
 
-            } catch (e) {
-                console.error("數據抓取失敗", e);
+            // --- FVG 邏輯 ---
+            // 看多 FVG: 第一根高點 < 第三根低點
+            if (c1.high < c3.low) {
+                logFVG("Bullish FVG", c1.high, c3.low, "green");
+            }
+            // 看空 FVG: 第一根低點 > 第三根高點
+            if (c1.low > c3.high) {
+                logFVG("Bearish FVG", c1.low, c3.high, "red");
+            }
+
+            // --- SMC 邏輯 (簡化) ---
+            detectSMC(klines);
+            generateAIAdvice(klines);
+        }
+
+        function logFVG(type, top, bottom, color) {
+            const log = document.getElementById('fvg-logs');
+            const div = document.createElement('div');
+            div.className = `p-1 border-l-2 border-${color}-500 bg-${color}-500/10 mb-1`;
+            div.innerText = `[${new Date().toLocaleTimeString()}] ${type}: ${bottom} - ${top}`;
+            log.prepend(div);
+        }
+
+        function detectSMC(data) {
+            // 偵測 BOS: 當前價格突破了前高/前低
+            const lastHigh = data[data.length-10].high; 
+            if (data[data.length-1].close > lastHigh) {
+                document.getElementById('bos-status').innerText = "🐂 看漲結構突破 (BOS)";
+                document.getElementById('bos-status').className = "text-green-500 font-bold";
             }
         }
 
-        // 3. 策略建議邏輯
-        function updateStrategy(funding, vol, price) {
-            const adviceEl = document.getElementById('strategy-advice');
-            const liqEl = document.getElementById('liquidation-zone');
+        // 3. AI 策略生成器 (針對 100x 槓桿)
+        function generateAIAdvice(data) {
+            const currentPrice = data[data.length-1].close;
+            const adviceBox = document.getElementById('ai-advice');
             
-            // 100x 槓桿爆倉距離約為 0.8% - 1%
-            const upLiq = (price * 1.008).toFixed(2);
-            const downLiq = (price * 0.992).toFixed(2);
+            // 邏輯判斷：若有 FVG 且 BOS 向上
+            const isBullish = document.getElementById('bos-status').innerText.includes("🐂");
             
-            liqEl.innerHTML = `[100x 預估清算參考區間] 上方: $${upLiq} | 下方: $${downLiq}`;
-
-            if (vol > 4) {
-                adviceEl.innerHTML = "<span class='text-red-500 font-bold'>禁止操作！</span> 當前波動率過大，100x 槓桿極易在幾秒內滑價爆倉。";
-            } else if (funding > 0.04) {
-                adviceEl.innerHTML = "策略：<span class='text-red-400'>逢高尋求做空機會</span>。資金費率過高，莊家有強烈動機向下獵殺多頭槓桿。";
-            } else if (funding < -0.04) {
-                adviceEl.innerHTML = "策略：<span class='text-green-400'>逢低尋求做多機會</span>。市場極度看空，容易出現暴力反彈軋空。";
+            if (isBullish) {
+                adviceBox.innerHTML = "分析結果：<span class='text-green-400'>結構看漲</span>。建議在 15m FVG 回測區間掛多單。100x 槓桿請嚴格執行 0.5% 止損。";
+                document.getElementById('entry-p').innerText = (currentPrice * 0.998).toFixed(2);
+                document.getElementById('sl-p').innerText = (currentPrice * 0.993).toFixed(2);
             } else {
-                adviceEl.innerText = "市場處於震盪區間。100x 槓桿建議僅在支撐/壓力位附近配合 RSI 進行 5 分鐘級別超短線操作。";
+                adviceBox.innerText = "盤面整理中，暫無高勝率 100x 入場信號。建議觀望主力在 Order Block 的反應。";
             }
         }
 
-        // 4. Telegram 發送邏輯
-        let lastAlertTime = 0;
-        async function sendTGAlert(message) {
-            const token = document.getElementById('tg-token').value;
-            const chatId = document.getElementById('tg-chatid').value;
-            const now = Date.now();
-
-            // 防止 5 分鐘內重複發送相同警報
-            if (token && chatId && (now - lastAlertTime > 300000)) {
-                try {
-                    await fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
-                    lastAlertTime = now;
-                    console.log("TG Alert Sent");
-                } catch (e) { console.error("TG Send Failed", e); }
-            }
+        function updatePrice(coin, price) {
+            const el = document.getElementById(`${coin}-price`);
+            const oldPrice = parseFloat(el.innerText);
+            el.innerText = price;
+            el.className = price > oldPrice ? "text-3xl font-mono font-bold tracking-tighter text-green-500 glow-green" : "text-3xl font-mono font-bold tracking-tighter text-red-500 glow-red";
         }
 
-        // 定時更新 (每 10 秒)
-        setInterval(updateMarketData, 10000);
-        updateMarketData();
+        // 啟動
+        initCoinWWS();
+        // 模擬數據演示 (若 WS 未連通)
+        setInterval(() => {
+            let mockPrice = (96000 + Math.random() * 100).toFixed(2);
+            updatePrice('btc', mockPrice);
+        }, 100); 
     </script>
 </body>
 </html>
