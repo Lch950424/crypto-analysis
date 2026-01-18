@@ -2,139 +2,123 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>CoinW 100x AI 實時戰鬥終端</title>
+    <title>CoinW 100x AI 戰略終端</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    <style>
-        .glow-text { text-shadow: 0 0 8px rgba(34, 197, 94, 0.8); }
-        .panel-bg { background: rgba(15, 15, 15, 0.95); }
-    </style>
 </head>
-<body class="bg-black text-white p-2 overflow-hidden h-screen flex flex-col">
+<body class="bg-black text-gray-200 p-2 font-mono h-screen flex flex-col">
 
-    <div class="flex gap-2 mb-2 h-16">
-        <div class="panel-bg p-2 rounded flex-1 border-l-4 border-green-500">
-            <span class="text-[10px] text-gray-500 uppercase font-bold">CoinW BTC/USDT</span>
-            <div id="btc-price" class="text-2xl font-mono font-bold glow-text">0.00</div>
+    <div class="grid grid-cols-2 gap-2 mb-2">
+        <div class="bg-zinc-900 p-3 rounded-lg border-l-4 border-green-500 shadow-inner">
+            <span class="text-[10px] text-gray-500 block">COINW BTCUSDT PERP</span>
+            <div id="btc-price" class="text-3xl font-bold tracking-tighter text-green-400">LOADING...</div>
+            <div id="btc-funding" class="text-[10px] text-zinc-500 mt-1">Funding: --%</div>
         </div>
-        <div class="panel-bg p-2 rounded flex-1 border-l-4 border-blue-500">
-            <span class="text-[10px] text-gray-500 uppercase font-bold">CoinW ETH/USDT</span>
-            <div id="eth-price" class="text-2xl font-mono font-bold text-blue-400">0.00</div>
+        <div class="bg-zinc-900 p-3 rounded-lg border-l-4 border-blue-500 shadow-inner">
+            <span class="text-[10px] text-gray-500 block">COINW ETHUSDT PERP</span>
+            <div id="eth-price" class="text-3xl font-bold tracking-tighter text-blue-400">LOADING...</div>
+            <div id="eth-funding" class="text-[10px] text-zinc-500 mt-1">Funding: --%</div>
         </div>
     </div>
 
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-2">
-        <div class="relative bg-gray-900 rounded overflow-hidden border border-gray-800">
-            <div id="btc-chart" class="w-full h-full"></div>
-            <div class="absolute top-2 left-2 bg-black/60 p-1 text-[10px] rounded">SMC & FVG Enabled</div>
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2 min-h-0">
+        <div class="md:col-span-2 bg-zinc-900 rounded-lg p-2 border border-zinc-800 relative">
+            <div class="absolute top-2 right-2 flex gap-2 z-10">
+                <span class="bg-black/50 px-2 py-0.5 rounded text-[10px] text-purple-400 border border-purple-500/50">SMC: ON</span>
+                <span class="bg-black/50 px-2 py-0.5 rounded text-[10px] text-orange-400 border border-orange-500/50">FVG: ON</span>
+            </div>
+            <div id="main-chart" class="w-full h-full"></div>
         </div>
-        <div class="relative bg-gray-900 rounded overflow-hidden border border-gray-800">
-            <div id="eth-chart" class="w-full h-full"></div>
-            <div class="absolute top-2 left-2 bg-black/60 p-1 text-[10px] rounded">SMC & FVG Enabled</div>
-        </div>
-    </div>
-
-    <div class="h-32 mt-2 flex gap-2">
-        <div class="panel-bg p-3 rounded flex-1 border border-red-900/50">
-            <h3 class="text-xs font-bold text-red-500 mb-1">🚨 AI 100x 策略建議</h3>
-            <div id="ai-advice" class="text-xs text-gray-300">正在同步 CoinW 訂單簿數據...</div>
-        </div>
-        <div class="panel-bg p-3 rounded w-64 border border-purple-900/50 overflow-y-auto">
-            <h3 class="text-xs font-bold text-purple-400 mb-1">Smart Money Logs</h3>
-            <div id="smc-logs" class="text-[10px] font-mono space-y-1"></div>
+        
+        <div class="bg-zinc-900 rounded-lg p-3 border border-zinc-800 flex flex-col">
+            <h3 class="text-xs font-bold text-yellow-500 mb-2 flex items-center gap-1">
+                <span class="animate-pulse">●</span> AI 100x 動態建議
+            </h3>
+            <div id="ai-advice" class="text-[11px] leading-relaxed text-zinc-400 overflow-y-auto flex-1 space-y-2">
+                正在分析 CoinW 盤口流動性...
+            </div>
+            <div class="mt-2 pt-2 border-t border-zinc-800">
+                <div class="flex justify-between text-[10px]">
+                    <span class="text-zinc-500">建議方向:</span>
+                    <span id="rec-side" class="font-bold">--</span>
+                </div>
+                <div class="flex justify-between text-[10px]">
+                    <span class="text-zinc-500">建議掛單:</span>
+                    <span id="rec-entry" class="text-white">--</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 1. 初始化極速圖表 (Lightweight Charts)
-        function createChart(containerId, color) {
-            const chart = LightweightCharts.createChart(document.getElementById(containerId), {
-                layout: { backgroundColor: '#000', textColor: '#d1d4dc' },
-                grid: { vertLines: { color: '#1f1f1f' }, horzLines: { color: '#1f1f1f' } },
-                timeScale: { timeVisible: true, secondsVisible: true }
-            });
-            const candleSeries = chart.addCandlestickSeries({
-                upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
-                wickUpColor: '#26a69a', wickDownColor: '#ef5350'
-            });
-            return { chart, candleSeries };
+        // 初始化圖表
+        const chart = LightweightCharts.createChart(document.getElementById('main-chart'), {
+            layout: { background: { color: '#18181b' }, textColor: '#71717a' },
+            grid: { vertLines: { color: '#27272a' }, horzLines: { color: '#27272a' } },
+            timeScale: { timeVisible: true, secondsVisible: true }
+        });
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: '#22c55e', downColor: '#ef4444', borderVisible: false,
+            wickUpColor: '#22c55e', wickDownColor: '#ef4444'
+        });
+
+        // 每秒呼叫 CoinW API (此處為模擬 CoinW 合約請求結構)
+        async function fetchCoinW() {
+            try {
+                // 實際部署時替換為 CoinW API URL
+                // const res = await fetch('https://api.coinw.com/api/v1/public?command=returnTicker');
+                
+                const mockBTC = 96000 + Math.random() * 20;
+                const mockETH = 2400 + Math.random() * 5;
+
+                updateUI('btc', mockBTC);
+                updateUI('eth', mockETH);
+                
+                // 模擬 K 線數據更新
+                const now = Math.floor(Date.now() / 1000);
+                candleSeries.update({
+                    time: now,
+                    open: mockBTC - 2,
+                    high: mockBTC + 5,
+                    low: mockBTC - 10,
+                    close: mockBTC
+                });
+
+                runAIEngine(mockBTC, mockETH);
+            } catch (e) { console.error("API Error", e); }
         }
 
-        const btcData = createChart('btc-chart', '#22c55e');
-        const ethData = createChart('eth-chart', '#3b82f6');
-
-        // 2. CoinW WebSocket 實時數據連接
-        function connectCoinW() {
-            // 模擬 CoinW WebSocket 邏輯 (請依據 CoinW 最新 WSS API 調整訂閱參數)
-            const ws = new WebSocket('wss://api.coinw.com/ws/public');
-            
-            ws.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                // 這裡處理毫秒級價格更新
-                if (msg.type === 'ticker') {
-                    updatePrice(msg.symbol, msg.price);
-                }
-                // 這裡處理 K 線更新並計算 FVG/SMC
-                if (msg.type === 'kline') {
-                    analyzeIndicators(msg.symbol, msg.data);
-                }
-            };
-
-            // 模擬實時跳動 (Demo 顯示)
-            setInterval(() => {
-                const btcPrice = (96000 + Math.random() * 50).toFixed(2);
-                const ethPrice = (2400 + Math.random() * 2).toFixed(2);
-                updatePrice('btc', btcPrice);
-                updatePrice('eth', ethPrice);
-            }, 10); // 0.01秒級更新
+        function updateUI(coin, price) {
+            const el = document.getElementById(`${coin}-price`);
+            const oldPrice = parseFloat(el.innerText) || 0;
+            el.innerText = price.toFixed(2);
+            el.className = price >= oldPrice ? "text-3xl font-bold tracking-tighter text-green-400" : "text-3xl font-bold tracking-tighter text-red-400";
         }
 
-        function updatePrice(symbol, price) {
-            const el = document.getElementById(`${symbol}-price`);
-            if (el) el.innerText = price;
-        }
-
-        // 3. 指標算法：FVG / IFVG & SMC (LuxAlgo Style)
-        let candleHistory = [];
-        function analyzeIndicators(symbol, candle) {
-            candleHistory.push(candle);
-            if (candleHistory.length < 3) return;
-
-            const i = candleHistory.length - 1;
-            const prev2 = candleHistory[i-2];
-            const prev1 = candleHistory[i-1];
-            const curr = candleHistory[i];
-
-            // FVG 檢測邏輯
-            if (prev2.high < curr.low) {
-                logSMC("Bullish FVG Detect", "green");
-                updateAIAdvice("BULLISH", "發現看漲 FVG 缺口，建議回調進多");
-            } else if (prev2.low > curr.high) {
-                logSMC("Bearish FVG Detect", "red");
-                updateAIAdvice("BEARISH", "發現看跌 FVG 缺口，慎防 100x 多單");
-            }
-
-            // SMC - BOS 結構突破檢測
-            if (curr.close > Math.max(...candleHistory.slice(-10).map(c => c.high))) {
-                logSMC("BOS Breakout Up", "purple");
-            }
-        }
-
-        function logSMC(msg, color) {
-            const logBox = document.getElementById('smc-logs');
-            const entry = document.createElement('div');
-            entry.className = `text-${color}-500 border-b border-gray-800 pb-1`;
-            entry.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            logBox.prepend(entry);
-        }
-
-        function updateAIAdvice(type, msg) {
+        // FVG & SMC 邏輯引擎
+        function runAIEngine(btc, eth) {
             const adviceBox = document.getElementById('ai-advice');
-            const color = type === "BULLISH" ? "text-green-400" : "text-red-400";
-            adviceBox.innerHTML = `<span class="${color} font-bold">[${type}]</span> ${msg} <br> <span class="text-[10px]">掛單建議：${(96100).toFixed(2)} | 止損：0.5%</span>`;
+            // 隨機模擬 SMC 偵測 (實際應根據歷史 K 線計算)
+            const signals = [
+                "偵測到下方 $95,800 存在多頭 Order Block。",
+                "FVG 缺口已回補，100x 空單注意止盈。",
+                "BOS 結構向上突破，回踩 FVG 可嘗試做多。"
+            ];
+            
+            if (Math.random() > 0.8) {
+                const msg = signals[Math.floor(Math.random() * signals.length)];
+                const div = document.createElement('div');
+                div.className = "border-l-2 border-yellow-500 pl-2 mb-2 italic";
+                div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                adviceBox.prepend(div);
+                
+                // 更新建議
+                document.getElementById('rec-side').innerText = btc > 96000 ? "LONG (做多)" : "SHORT (做空)";
+                document.getElementById('rec-entry').innerText = btc.toFixed(2);
+            }
         }
 
-        connectCoinW();
+        setInterval(fetchCoinW, 1000); // 每秒更新
     </script>
 </body>
 </html>
