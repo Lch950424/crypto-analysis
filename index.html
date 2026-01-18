@@ -2,116 +2,75 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto 100x Pro Dashboard</title>
+    <title>CoinW 100x AI 戰略終端 - 修復版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.12.1/polyfill.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-gray-200 p-4 font-sans">
+<body class="bg-black text-gray-200 p-4 font-mono">
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <div class="bg-gray-900 p-4 rounded-lg border border-yellow-600 shadow-lg">
-            <h3 class="text-yellow-500 text-sm font-bold">CoinW BTC 資金費率</h3>
-            <p id="btc-funding" class="text-2xl font-mono text-green-400">--%</p>
-            <div id="funding-status" class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">系統連線中...</div>
-        </div>
-        
-        <div class="bg-gray-900 p-4 rounded-lg border border-blue-600 shadow-lg">
-            <h3 class="text-blue-400 text-sm font-bold">ETH 24h 波動率 (ATR)</h3>
-            <p id="eth-atr" class="text-2xl font-mono text-blue-300">--%</p>
-            <p class="text-[10px] text-gray-500 mt-1">100x 槓桿高風險監控</p>
-        </div>
+    <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800 mb-4">
+        <h1 class="text-xl font-bold text-yellow-500">🤖 AI SMC 策略決策系統</h1>
+        <p id="api-status" class="text-[10px] text-zinc-500 mt-1">狀態：等待系統啟動...</p>
+    </div>
 
-        <div class="bg-gray-900 p-4 rounded-lg border border-purple-600 shadow-lg md:col-span-2">
-            <h3 class="text-purple-400 text-sm font-bold">SMC 實時分析日誌</h3>
-            <div id="smc-log" class="text-[10px] text-zinc-500 mt-2 font-mono h-12 overflow-y-auto">
-                正在等待首輪數據流入...
-            </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-zinc-900 p-6 rounded-lg border-l-4 border-green-500">
+            <div class="text-[10px] text-zinc-500">COINW BTC/USDT</div>
+            <div id="btc-price" class="text-4xl font-bold text-green-400">載入中...</div>
+        </div>
+        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800 overflow-hidden">
+            <h3 class="text-[10px] font-bold text-purple-400 mb-2 uppercase">SMC 分析日誌 (10S 更新)</h3>
+            <div id="smc-log" class="text-[10px] text-zinc-500 h-20 overflow-y-auto">等待數據...</div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <div class="h-[500px] bg-gray-900 rounded-lg overflow-hidden border border-gray-800">
-            <div id="tradingview_btc" class="h-full"></div>
-        </div>
-        <div class="h-[500px] bg-gray-900 rounded-lg overflow-hidden border border-gray-800">
-            <div id="tradingview_eth" class="h-full"></div>
-        </div>
+    <div id="strategy-card" class="mt-4 bg-blue-900/10 border border-blue-500/30 p-6 rounded-lg text-center">
+        <p id="strategy-advice" class="text-sm text-blue-100 italic">系統正在嘗試透過代理伺服器獲取價格...</p>
     </div>
 
-    <div id="alert-panel" class="bg-zinc-900 border border-zinc-700 p-6 rounded-lg text-center shadow-2xl">
-        <h2 class="text-xl font-bold text-blue-400 mb-2 italic">🤖 AI SMC 策略決策系統</h2>
-        <p id="strategy-advice" class="text-base text-gray-300">正在嘗試獲取 CoinW 數據...</p>
-        <div id="liquidation-zone" class="mt-4 text-[10px] text-yellow-500 opacity-80 font-mono"></div>
-    </div>
-
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    
     <script>
-        // 初始化圖表
-        const initTV = (symbol, id) => {
-            if (typeof TradingView !== 'undefined') {
-                new TradingView.widget({
-                    "autosize": true,
-                    "symbol": `COINW:${symbol}USDT.P`,
-                    "interval": "15",
-                    "theme": "dark",
-                    "style": "1",
-                    "locale": "zh_TW",
-                    "container_id": id
-                });
-            }
-        };
-        initTV("BTC", "tradingview_btc");
-        initTV("ETH", "tradingview_eth");
+        var lastPrice = 0;
 
-        let lastPrice = 0;
+        // 使用傳統的 .then 語法以增加穩定性
+        function updateData() {
+            var status = document.getElementById('api-status');
+            var priceEl = document.getElementById('btc-price');
+            var logEl = document.getElementById('smc-log');
+            var adviceEl = document.getElementById('strategy-advice');
 
-        async function updateMarketData() {
-            const adviceEl = document.getElementById('strategy-advice');
-            const logEl = document.getElementById('smc-log');
-            const fundingStatus = document.getElementById('funding-status');
-            
-            try {
-                // 使用跨域代理獲取 CoinW 數據
-                const proxy = "https://corsproxy.io/?";
-                const target = "https://api.coinw.com/api/v1/public?command=returnTicker";
-                const response = await fetch(proxy + encodeURIComponent(target));
-                const json = await response.json();
-                
-                // 相容不同的資料回傳格式
-                const data = json.data || json;
-                const btc = parseFloat(data.BTCUSDT?.last || data.BTC_USDT?.last || 0);
-                const eth = parseFloat(data.ETHUSDT?.last || data.ETH_USDT?.last || 0);
+            var target = "https://api.coinw.com/api/v1/public?command=returnTicker";
+            var proxy = "https://corsproxy.io/?";
 
-                if (btc > 0) {
-                    fundingStatus.innerText = "數據同步中";
-                    document.getElementById('btc-funding').innerText = "0.0100%";
-                    document.getElementById('eth-atr').innerText = "2.41%"; 
+            status.innerText = "狀態：正在獲取最新數據...";
 
-                    // SMC 指標演算法
-                    const gap = btc - lastPrice;
-                    if (lastPrice !== 0 && Math.abs(gap) > 10) {
-                        const signal = gap > 0 ? "BULLISH FVG" : "BEARISH FVG";
-                        const color = gap > 0 ? "text-green-400" : "text-red-400";
-                        logEl.innerHTML = `<div class="${color}">[${new Date().toLocaleTimeString()}] ${signal} (位移: ${gap.toFixed(2)})</div>` + logEl.innerHTML;
-                        adviceEl.innerHTML = `AI 建議：偵測到 ${signal}。100x 合約建議在 $${(btc - (gap*0.4)).toFixed(2)} 附近找尋入場點。`;
-                    } else if (lastPrice !== 0) {
-                        adviceEl.innerText = "市場結構穩定，目前無明顯 SMC 失衡信號。";
+            fetch(proxy + encodeURIComponent(target))
+                .then(function(response) { return response.json(); })
+                .then(function(json) {
+                    var data = json.data || json;
+                    var btc = parseFloat(data.BTCUSDT ? data.BTCUSDT.last : (data.BTC_USDT ? data.BTC_USDT.last : 0));
+
+                    if (btc > 0) {
+                        priceEl.innerText = "$" + btc.toFixed(2);
+                        status.innerText = "狀態：數據同步成功 (" + new Date().toLocaleTimeString() + ")";
+
+                        var gap = btc - lastPrice;
+                        if (lastPrice !== 0 && Math.abs(gap) > 10) {
+                            var type = gap > 0 ? "BULLISH FVG" : "BEARISH FVG";
+                            logEl.innerHTML = "<div>[" + new Date().toLocaleTimeString() + "] " + type + " (位移 " + gap.toFixed(2) + ")</div>" + logEl.innerHTML;
+                            adviceEl.innerHTML = "AI 建議：偵測到 <b>" + type + "</b>。100x 建議在 $" + (btc - (gap * 0.4)).toFixed(2) + " 附近掛單。";
+                        }
+                        lastPrice = btc;
                     }
-                    
-                    document.getElementById('liquidation-zone').innerText = `[100x 預估爆倉區] 下方: $${(btc*0.992).toFixed(2)} | 上方: $${(btc*1.008).toFixed(2)}`;
-                    lastPrice = btc;
-                }
-            } catch (e) {
-                console.error("更新數據出錯:", e);
-                adviceEl.innerText = "連線失敗，請檢查網路或更換瀏覽器。";
-            }
+                })
+                .catch(function(err) {
+                    status.innerText = "狀態：連線出錯 - " + err.message;
+                    adviceEl.innerText = "代理伺服器可能過載，請稍候 10 秒系統會自動重連。";
+                });
         }
 
-        // 每 10 秒觸發一次
-        setInterval(updateMarketData, 10);
-        updateMarketData();
+        // 啟動 10 秒更新
+        setInterval(updateData, 10);
+        updateData();
     </script>
 </body>
 </html>
