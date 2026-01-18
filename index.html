@@ -2,65 +2,75 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>CoinW 100x AI 穩定終端</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoinW 100x AI 戰略終端</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.12.1/polyfill.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-gray-200 p-4 font-mono">
+<body class="bg-black text-gray-200 p-4 font-mono flex flex-col min-h-screen">
 
-    <div class="grid grid-cols-2 gap-4 mb-4">
-        <div class="bg-zinc-900 p-4 rounded border-l-4 border-green-500 shadow-lg">
-            <div class="text-[10px] text-zinc-500 font-bold uppercase">CoinW BTC/USDT</div>
-            <div id="btc-price" class="text-3xl font-bold text-green-400">連線中...</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="bg-zinc-900 p-6 rounded-lg border-l-4 border-green-500 shadow-lg">
+            <div class="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">CoinW BTC/USDT</div>
+            <div id="btc-price" class="text-4xl font-bold text-green-400 mt-1">連線中...</div>
+            <div id="api-status" class="text-[9px] text-zinc-600 mt-2 italic">系統初始化...</div>
         </div>
-        <div class="bg-zinc-900 p-4 rounded border-l-4 border-blue-500 shadow-lg">
-            <div class="text-[10px] text-zinc-500 font-bold uppercase">系統狀態</div>
-            <div id="sys-status" class="text-sm font-bold text-blue-400">正在初始化...</div>
+        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800 flex flex-col">
+            <h3 class="text-xs font-bold text-purple-400 mb-2 uppercase flex justify-between">
+                <span>SMC 實時分析日誌</span>
+                <span class="text-[9px] text-zinc-600">更新頻率: 10S</span>
+            </h3>
+            <div id="smc-log" class="text-[10px] text-zinc-500 overflow-y-auto flex-1 h-20 scrollbar-hide">
+                正在等待 CoinW 數據流入...
+            </div>
         </div>
     </div>
 
-    <div class="bg-zinc-900 p-4 rounded border border-zinc-800 mb-4 h-48 flex flex-col">
-        <h3 class="text-xs font-bold text-yellow-500 mb-2 uppercase border-b border-zinc-800 pb-1">Smart Money SMC 實時監控</h3>
-        <div id="smc-logs" class="flex-1 overflow-y-auto text-[11px] text-zinc-400 space-y-1">
-            等待數據流入分析 FVG 與 結構突破...
+    <div id="strategy-card" class="bg-blue-950/20 border border-blue-500/30 p-8 rounded-xl text-center shadow-2xl">
+        <h2 class="text-xl font-bold text-blue-400 mb-4 tracking-tighter italic">🤖 AI SMC 策略決策系統</h2>
+        <p id="strategy-advice" class="text-base text-blue-100 leading-relaxed">正在分析訂單簿不平衡區間 (FVG)...</p>
+        
+        <div class="grid grid-cols-2 gap-4 mt-6 max-w-md mx-auto">
+            <div class="bg-black/60 p-3 rounded border border-zinc-800">
+                <div class="text-[10px] text-zinc-500 uppercase">建議進場</div>
+                <div id="entry-val" class="text-lg font-bold text-white">--</div>
+            </div>
+            <div class="bg-black/60 p-3 rounded border border-zinc-800">
+                <div class="text-[10px] text-red-500 uppercase">100x 強平位</div>
+                <div id="sl-val" class="text-lg font-bold text-red-500">--</div>
+            </div>
         </div>
-    </div>
-
-    <div class="bg-blue-950/20 border border-blue-500/30 p-6 rounded-lg text-center shadow-xl">
-        <h2 class="text-lg font-bold text-blue-400 mb-2 italic">🤖 AI 100x 策略決策</h2>
-        <p id="ai-advice" class="text-sm text-blue-100">正在分析盤口數據與失衡區間...</p>
-        <div id="liq-range" class="mt-4 text-[10px] text-red-400 font-mono opacity-80"></div>
     </div>
 
     <script>
         var lastPrice = 0;
-        var historyPrices = [];
 
-        function updateMarket() {
+        function updateData() {
             var btcEl = document.getElementById('btc-price');
-            var statusEl = document.getElementById('sys-status');
-            var logEl = document.getElementById('smc-logs');
-            var adviceEl = document.getElementById('ai-advice');
-            var liqEl = document.getElementById('liq-range');
+            var statusEl = document.getElementById('api-status');
+            var logEl = document.getElementById('smc-log');
+            var adviceEl = document.getElementById('strategy-advice');
+            var entryEl = document.getElementById('entry-val');
+            var slEl = document.getElementById('sl-val');
 
-            // CoinW 公開 API 與 代理
+            // 使用代理繞過 CORS 限制
             var proxy = "https://corsproxy.io/?";
             var target = "https://api.coinw.com/api/v1/public?command=returnTicker";
 
-            statusEl.innerText = "正在更新數據...";
+            statusEl.innerText = "正在向 CoinW 請求數據...";
 
             fetch(proxy + encodeURIComponent(target))
                 .then(function(res) { return res.json(); })
                 .then(function(json) {
                     var data = json.data || json;
-                    // 相容 CoinW 不同時期的 API 回傳結構
+                    // 適配 CoinW API 的各種回傳格式
                     var btc = parseFloat(data.BTCUSDT ? data.BTCUSDT.last : (data.BTC_USDT ? data.BTC_USDT.last : 0));
 
                     if (btc > 0) {
                         btcEl.innerText = "$" + btc.toFixed(2);
                         statusEl.innerText = "數據同步成功 (" + new Date().toLocaleTimeString() + ")";
 
-                        // SMC / FVG 指標計算邏輯
+                        // SMC 指標演算法
                         if (lastPrice !== 0) {
                             var gap = btc - lastPrice;
                             if (Math.abs(gap) > 10) {
@@ -68,28 +78,28 @@
                                 var color = gap > 0 ? "text-green-400" : "text-red-400";
                                 
                                 // 更新日誌
-                                var logMsg = '<div class="border-b border-zinc-800 pb-1">[' + new Date().toLocaleTimeString() + '] <span class="' + color + ' font-bold">' + type + '</span> 位移: ' + gap.toFixed(2) + '</div>';
-                                logEl.innerHTML = logMsg + logEl.innerHTML;
-
-                                // 更新 AI 建議
-                                adviceEl.innerHTML = "偵測到 <b>" + type + "</b>。100x 建議在 $" + (btc - (gap * 0.4)).toFixed(2) + " 附近掛單。";
+                                logEl.innerHTML = "<div>[" + new Date().toLocaleTimeString() + "] <span class='" + color + " font-bold'>" + type + "</span> 偵測 (位移 " + gap.toFixed(2) + ")</div>" + logEl.innerHTML;
+                                
+                                // 更新建議
+                                adviceEl.innerHTML = "偵測到 <b>" + type + "</b>。主力正在發力，100x 建議在 <b>$" + (btc - (gap * 0.4)).toFixed(2) + "</b> 附近尋求入場。";
+                                entryEl.innerText = (btc - (gap * 0.4)).toFixed(2);
+                                slEl.innerText = (btc * (gap > 0 ? 0.992 : 1.008)).toFixed(2);
+                            } else {
+                                adviceEl.innerText = "市場結構盤整中，目前無明顯 SMC 缺口信號。";
                             }
                         }
-                        
-                        // 計算 100x 強平區間
-                        liqEl.innerText = "[100x 預估爆倉位] 多單: $" + (btc * 0.992).toFixed(2) + " | 空單: $" + (btc * 1.008).toFixed(2);
                         lastPrice = btc;
                     }
                 })
                 .catch(function(err) {
-                    statusEl.innerText = "連線失敗: 代理伺服器過載";
+                    statusEl.innerText = "連線失敗：代理伺服器或 CoinW API 無回應";
                     console.error(err);
                 });
         }
 
-        // 啟動 2 秒更新 (2000 毫秒)
-        setInterval(updateMarket, 10);
-        updateMarket();
+        // 執行循環：10 秒更新
+        setInterval(updateData, 10);
+        updateData();
     </script>
 </body>
 </html>
