@@ -2,63 +2,85 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>CoinW 100x AI 決策終端</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoinW ETH 100x AI 終端</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.12.1/polyfill.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-gray-200 p-4 font-mono flex flex-col min-h-screen">
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
-            <h3 class="text-xs text-zinc-500 uppercase">CoinW BTC 價格</h3>
-            <div id="btc-price" class="text-3xl font-bold text-green-400">--.00</div>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800 text-center">
-            <h3 class="text-xs text-zinc-500 uppercase">AI 多空力道比</h3>
-            <div class="flex items-center justify-center gap-2 mt-1">
-                <span class="text-red-500 text-xs">空</span>
-                <div class="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
-                    <div id="sentiment-bar" class="bg-green-500 h-full transition-all duration-500" style="width: 50%"></div>
-                </div>
-                <span class="text-green-500 text-xs">多</span>
-            </div>
-            <div id="sentiment-val" class="text-[10px] mt-1 text-zinc-400">中性 50%</div>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
-            <h3 class="text-xs text-zinc-500 uppercase">系統日誌</h3>
-            <div id="smc-log" class="text-[9px] h-8 overflow-y-auto text-zinc-600">等待分析數據...</div>
-        </div>
-    </div>
-
-    <div id="alert-panel" class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl shadow-2xl">
-        <div class="flex items-center gap-2 mb-4 justify-center">
-            <span class="animate-ping inline-flex h-2 w-2 rounded-full bg-blue-400 opacity-75"></span>
-            <h2 class="text-xl font-bold text-blue-400 italic">🤖 AI 100x SMC 策略核心</h2>
+        <div class="bg-zinc-900 p-6 rounded-lg border-l-4 border-blue-500 shadow-lg">
+            <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">CoinW ETH/USDT</div>
+            <div id="eth-price" class="text-4xl font-bold text-blue-400 mt-1">載入中...</div>
+            <div id="api-status" class="text-[9px] text-zinc-600 mt-2 italic">系統連線中...</div>
         </div>
         
-        <div class="space-y-4">
-            <div class="p-4 bg-black/40 rounded border border-zinc-700">
-                <div class="text-[10px] text-zinc-500 mb-1 uppercase tracking-widest">當前策略方向</div>
-                <div id="strategy-advice" class="text-lg font-bold text-white italic">正在掃描市場缺口...</div>
+        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800 flex flex-col justify-center">
+            <h3 class="text-xs font-bold text-purple-400 mb-2 uppercase">AI 多空力道比</h3>
+            <div class="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+                <div id="sentiment-bar" class="bg-blue-500 h-full transition-all duration-700" style="width: 50%"></div>
             </div>
+            <div id="sentiment-val" class="text-[10px] mt-2 text-zinc-500 text-center font-bold">中性 50%</div>
+        </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div class="p-3 bg-zinc-800/50 rounded">
-                    <div class="text-[10px] text-green-500 uppercase">建議進場 (多/空)</div>
-                    <div id="entry-val" class="text-xl font-bold">--</div>
-                </div>
-                <div class="p-3 bg-zinc-800/50 rounded">
-                    <div class="text-[10px] text-red-500 uppercase">100x 止損/強平參考</div>
-                    <div id="sl-val" class="text-xl font-bold">--</div>
-                </div>
+        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+            <h3 class="text-xs font-bold text-zinc-400 mb-1 uppercase">SMC 分析日誌</h3>
+            <div id="smc-log" class="text-[10px] text-zinc-600 h-16 overflow-y-auto scrollbar-hide">
+                正在掃描 ETH 盤面數據...
             </div>
         </div>
     </div>
 
+    <div class="flex-1 min-h-[450px] bg-gray-900 rounded-lg overflow-hidden border border-gray-800 mb-4">
+        <div id="tradingview_eth" class="h-full"></div>
+    </div>
+
+    <div id="alert-panel" class="bg-blue-950/20 border border-blue-500/30 p-6 rounded-xl text-center shadow-2xl">
+        <h2 class="text-xl font-bold text-blue-400 mb-3 italic tracking-tighter">🤖 AI ETH 策略決策系統 (100x)</h2>
+        
+        <div class="p-4 bg-black/40 rounded border border-zinc-700 mb-4">
+            <p id="strategy-advice" class="text-base text-gray-300">正在分析訂單簿不平衡區間...</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 max-w-lg mx-auto">
+            <div class="p-3 bg-zinc-900/80 rounded border border-zinc-800">
+                <div class="text-[10px] text-zinc-500 uppercase">建議進場位</div>
+                <div id="entry-val" class="text-xl font-bold text-white">--</div>
+            </div>
+            <div class="p-3 bg-zinc-900/80 rounded border border-zinc-800">
+                <div class="text-[10px] text-red-500 uppercase">100x 強平參考</div>
+                <div id="sl-val" class="text-xl font-bold text-red-500">--</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
+        // 1. 初始化 ETH 圖表
+        new TradingView.widget({
+            "autosize": true,
+            "symbol": "COINW:ETHUSDT.P",
+            "interval": "15",
+            "theme": "dark",
+            "style": "1",
+            "locale": "zh_TW",
+            "container_id": "tradingview_eth"
+        });
+
         var lastPrice = 0;
 
-        function updateData() {
+        // 2. 數據更新邏輯
+        function updateMarket() {
+            var priceEl = document.getElementById('eth-price');
+            var statusEl = document.getElementById('api-status');
+            var logEl = document.getElementById('smc-log');
+            var adviceEl = document.getElementById('strategy-advice');
+            var barEl = document.getElementById('sentiment-bar');
+            var sentVal = document.getElementById('sentiment-val');
+            var entryEl = document.getElementById('entry-val');
+            var slEl = document.getElementById('sl-val');
+
             var proxy = "https://corsproxy.io/?";
             var target = "https://api.coinw.com/api/v1/public?command=returnTicker";
 
@@ -66,54 +88,49 @@
                 .then(function(res) { return res.json(); })
                 .then(function(json) {
                     var data = json.data || json;
-                    var btc = parseFloat(data.BTCUSDT ? data.BTCUSDT.last : (data.BTC_USDT ? data.BTC_USDT.last : 0));
+                    var eth = parseFloat(data.ETHUSDT ? data.ETHUSDT.last : (data.ETH_USDT ? data.ETH_USDT.last : 0));
 
-                    if (btc > 0) {
-                        document.getElementById('btc-price').innerText = btc.toFixed(2);
-                        processAI(btc);
+                    if (eth > 0) {
+                        priceEl.innerText = "$" + eth.toFixed(2);
+                        statusEl.innerText = "ETH 數據同步成功 (" + new Date().toLocaleTimeString() + ")";
+
+                        // AI 建議邏輯
+                        if (lastPrice !== 0) {
+                            var gap = eth - lastPrice;
+                            var score = 50;
+                            var advice = "盤整中，建議觀望 FVG 缺口形成。";
+
+                            if (gap > 0.5) { // ETH 波動較小，0.5 點位移即具參考價值
+                                score = 75;
+                                advice = "🚀 偵測到 ETH 看漲失衡。建議回踩做多。";
+                                logEl.innerHTML = "<div>[" + new Date().toLocaleTimeString() + "] Bullish FVG 偵測</div>" + logEl.innerHTML;
+                            } else if (gap < -0.5) {
+                                score = 25;
+                                advice = "⚠️ ETH 結構走弱。建議尋求反彈做空機會。";
+                                logEl.innerHTML = "<div>[" + new Date().toLocaleTimeString() + "] Bearish FVG 偵測</div>" + logEl.innerHTML;
+                            }
+
+                            // 更新視覺反饋
+                            barEl.style.width = score + "%";
+                            barEl.className = score > 50 ? "bg-green-500 h-full transition-all" : "bg-red-500 h-full transition-all";
+                            sentVal.innerText = (score > 50 ? "看多 " : "看空 ") + score + "%";
+                            adviceEl.innerHTML = advice;
+                            
+                            // 100x 建議數值
+                            entryEl.innerText = (eth - (gap * 0.3)).toFixed(2);
+                            slEl.innerText = (eth * (score > 50 ? 0.993 : 1.007)).toFixed(2);
+                        }
+                        lastPrice = eth;
                     }
+                })
+                .catch(function(err) {
+                    statusEl.innerText = "連線超時，正在重試...";
                 });
         }
 
-        function processAI(price) {
-            var score = 50; // 初始中性分
-            var advice = "";
-            var logEl = document.getElementById('smc-log');
-            
-            if (lastPrice !== 0) {
-                var gap = price - lastPrice;
-                
-                // 1. FVG 檢測邏輯 (權重 40%)
-                if (gap > 15) {
-                    score += 30;
-                    advice = "🚀 偵測到 BULLISH FVG。結構強勁，建議回測進多。";
-                    logEl.innerHTML = "<div>[" + new Date().toLocaleTimeString() + "] 結構看漲突破</div>" + logEl.innerHTML;
-                } else if (gap < -15) {
-                    score -= 30;
-                    advice = "⚠️ 偵測到 BEARISH FVG。主力拋售，建議反彈放空。";
-                    logEl.innerHTML = "<div>[" + new Date().toLocaleTimeString() + "] 結構看跌突破</div>" + logEl.innerHTML;
-                } else {
-                    advice = "市場震盪。100x 建議在清算位附近高拋低吸。";
-                }
-
-                // 更新儀表板
-                document.getElementById('sentiment-bar').style.width = score + "%";
-                document.getElementById('sentiment-val').innerText = (score > 50 ? "看多 " : "看空 ") + score + "%";
-                document.getElementById('strategy-advice').innerText = advice;
-                
-                // 更新建議價格
-                var entry = score > 50 ? (price - 10).toFixed(2) : (price + 10).toFixed(2);
-                var sl = score > 50 ? (price * 0.993).toFixed(2) : (price * 1.007).toFixed(2);
-                
-                document.getElementById('entry-val').innerText = entry;
-                document.getElementById('entry-val').className = score > 50 ? "text-xl font-bold text-green-400" : "text-xl font-bold text-red-400";
-                document.getElementById('sl-val').innerText = sl;
-            }
-            lastPrice = price;
-        }
-
-        setInterval(updateData, 10000); // 10秒更新
-        updateData();
+        // 每 10 秒檢查一次
+        setInterval(updateMarket, 10);
+        updateMarket();
     </script>
 </body>
 </html>
